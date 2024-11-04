@@ -31,20 +31,22 @@ class Bot(commands.Bot):
         rows = cursor.fetchall()
         for nombre, respuesta in rows:
             self.commands_dict[nombre] = respuesta
-
-            # Crear una función de respuesta para el comando
-            def create_command_response(command):
-                async def command_response(ctx):
-                    await self.send_command_response(ctx, command)
-                return command_response
-            
-            # Añadir el comando a la lista de comandos
-            self.add_command(commands.Command(name=nombre, func=create_command_response(nombre)))
+            # Registrar el comando directamente en el bot
+            self.add_command(commands.Command(name=nombre, func=self.create_command_response(nombre)))
 
             # Mensaje de depuración
             print(f"Cargando comando: {nombre} con respuesta: {respuesta}")
 
         conn.close()
+
+    def create_command_response(self, command):
+        async def command_response(ctx):
+            # Enviar la respuesta directamente desde el diccionario
+            if command in self.commands_dict:
+                await ctx.send(self.commands_dict[command])
+            else:
+                await ctx.send(f"No tengo una respuesta para el comando '{command}'.")
+        return command_response
 
     def is_moderator(self, ctx):
         return ctx.author.is_mod
@@ -62,14 +64,8 @@ class Bot(commands.Bot):
                     # Mensaje de depuración
                     print(f"Agregando comando '{comando}' con respuesta '{respuesta}'")
 
-                    # Crear una función de respuesta para el nuevo comando
-                    def create_command_response(command):
-                        async def command_response(ctx):
-                            await self.send_command_response(ctx, command)
-                        return command_response
-                    
-                    # Añadir el comando a la lista de comandos
-                    self.add_command(commands.Command(name=comando, func=create_command_response(comando)))
+                    # Registrar el nuevo comando en el bot
+                    self.add_command(commands.Command(name=comando, func=self.create_command_response(comando)))
 
                     # Imprimir el contenido del diccionario de comandos
                     print(f"Comandos registrados: {self.commands_dict}")
@@ -110,13 +106,6 @@ class Bot(commands.Bot):
                 else:
                     await ctx.send(f"El comando '{comando}' no existe.")
             conn.close()
-
-    async def send_command_response(self, ctx, comando):
-        # Verificar si el comando existe en el diccionario
-        if comando in self.commands_dict:
-            await ctx.send(self.commands_dict[comando])
-        else:
-            await ctx.send(f"No tengo una respuesta para el comando '{comando}'.")
 
 # Inicializar el bot
 if __name__ == "__main__":
