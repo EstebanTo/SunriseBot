@@ -25,26 +25,31 @@ class Bot(commands.Bot):
             await self.handle_commands(message)
 
     def load_commands(self):
-        conn = psycopg2.connect(DB_URL)
-        cursor = conn.cursor()
-        cursor.execute("SELECT nombre, respuesta FROM comandos")
-        rows = cursor.fetchall()
-        for nombre, respuesta in rows:
-            self.commands_dict[nombre] = respuesta
-            # Registrar el comando directamente en el bot
-            self.add_command(commands.Command(name=nombre, func=self.create_command_response(nombre)))
-
-            # Mensaje de depuración
-            print(f"Cargando comando: {nombre} con respuesta: {respuesta}")
-
-        conn.close()
+        try:
+            conn = psycopg2.connect(DB_URL)
+            cursor = conn.cursor()
+            cursor.execute("SELECT nombre, respuesta FROM comandos")
+            rows = cursor.fetchall()
+            print("Comandos obtenidos de la base de datos:")
+            for nombre, respuesta in rows:
+                print(f"Comando: {nombre}, Respuesta: {respuesta}")
+                self.commands_dict[nombre] = respuesta
+                
+                # Registrar el comando directamente en el bot
+                self.add_command(commands.Command(name=nombre, func=self.create_command_response(nombre)))
+                
+            conn.close()
+        except Exception as e:
+            print(f"Error al conectar a la base de datos: {str(e)}")
 
     def create_command_response(self, command):
         async def command_response(ctx):
             # Enviar la respuesta directamente desde el diccionario
             if command in self.commands_dict:
+                print(f"Ejecutando comando: {command} con respuesta: {self.commands_dict[command]}")
                 await ctx.send(self.commands_dict[command])
             else:
+                print(f"No se encontró el comando: {command}")
                 await ctx.send(f"No tengo una respuesta para el comando '{command}'.")
         return command_response
 
@@ -54,13 +59,13 @@ class Bot(commands.Bot):
     @commands.command(name='agregar')
     async def agregar_comando(self, ctx, comando: str, *, respuesta: str):
         if self.is_moderator(ctx):
-            conn = psycopg2.connect(DB_URL)
-            with conn:
-                cursor = conn.cursor()
-                try:
+            try:
+                conn = psycopg2.connect(DB_URL)
+                with conn:
+                    cursor = conn.cursor()
                     cursor.execute("INSERT INTO comandos (nombre, respuesta) VALUES (%s, %s)", (comando, respuesta))
                     self.commands_dict[comando] = respuesta
-
+                    
                     # Mensaje de depuración
                     print(f"Agregando comando '{comando}' con respuesta '{respuesta}'")
 
@@ -71,41 +76,46 @@ class Bot(commands.Bot):
                     print(f"Comandos registrados: {self.commands_dict}")
 
                     await ctx.send(f"Comando '{comando}' agregado con éxito.")
-                except psycopg2.IntegrityError:
-                    await ctx.send(f"El comando '{comando}' ya existe.")
-                except Exception as e:
-                    await ctx.send(f"Ocurrió un error al agregar el comando: {str(e)}")
                 conn.commit()
-            conn.close()
+            except psycopg2.IntegrityError:
+                await ctx.send(f"El comando '{comando}' ya existe.")
+            except Exception as e:
+                await ctx.send(f"Ocurrió un error al agregar el comando: {str(e)}")
+            finally:
+                conn.close()
 
     @commands.command(name='editar')
     async def editar_comando(self, ctx, comando: str, *, nueva_respuesta: str):
         if self.is_moderator(ctx):
-            conn = psycopg2.connect(DB_URL)
-            with conn:
-                cursor = conn.cursor()
-                cursor.execute("UPDATE comandos SET respuesta = %s WHERE nombre = %s", (nueva_respuesta, comando))
-                if cursor.rowcount > 0:
-                    self.commands_dict[comando] = nueva_respuesta
-                    await ctx.send(f"Comando '{comando}' editado con éxito.")
-                else:
-                    await ctx.send(f"El comando '{comando}' no existe.")
-            conn.close()
+            try:
+                conn = psycopg2.connect(DB_URL)
+                with conn:
+                    cursor = conn.cursor()
+                    cursor.execute("UPDATE comandos SET respuesta = %s WHERE nombre = %s", (nueva_respuesta, comando))
+                    if cursor.rowcount > 0:
+                        self.commands_dict[comando] = nueva_respuesta
+                        await ctx.send(f"Comando '{comando}' editado con éxito.")
+                    else:
+                        await ctx.send(f"El comando '{comando}' no existe.")
+            finally:
+                conn.close()
 
     @commands.command(name='eliminar')
     async def eliminar_comando(self, ctx, comando: str):
         if self.is_moderator(ctx):
-            conn = psycopg2.connect(DB_URL)
-            with conn:
-                cursor = conn.cursor()
-                cursor.execute("DELETE FROM comandos WHERE nombre = %s", (comando,))
-                if cursor.rowcount > 0:
-                    del self.commands_dict[comando]
-                    self.remove_command(comando)
-                    await ctx.send(f"Comando '{comando}' eliminado con éxito.")
-                else:
-                    await ctx.send(f"El comando '{comando}' no existe.")
-            conn.close()
+            try:
+                conn = psycopg2.connect(DB_URL)
+                with conn:
+                    cursor = conn.cursor()
+                    cursor.execute("DELETE FROM comandos WHERE nombre = %s", (comando,))
+                    if cursor.rowcount > 0:
+                        del self.commands_dict[comando]
+                        self.remove_command(comando)
+                        await ctx.send(f"Comando '{comando}' eliminado con éxito.")
+                    else:
+                        await ctx.send(f"El comando '{comando}' no existe.")
+            finally:
+                conn.close()
 
 # Inicializar el bot
 if __name__ == "__main__":
