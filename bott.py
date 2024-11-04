@@ -14,8 +14,8 @@ class Bot(commands.Bot):
     def __init__(self):
         super().__init__(token=ACCESS_TOKEN, prefix='!', initial_channels=[CHANNEL])
         self.commands_dict = {}
-        self.register_test_command()  # Registrar un comando de prueba al inicio
-        self.load_commands()  # Cargar los comandos de la base de datos
+        self.load_commands()  # Cargar comandos desde la base de datos
+        self.register_test_command()  # Registrar un comando de prueba
 
     async def event_ready(self):
         print(f'Logged in as {self.nick}')
@@ -37,8 +37,7 @@ class Bot(commands.Bot):
                 self.commands_dict[nombre] = respuesta
                 
                 # Registrar el comando directamente en el bot
-                command_response_func = self.create_command_response(nombre)
-                self.add_command(commands.Command(name=nombre, func=command_response_func))
+                self.add_command(commands.Command(name=nombre, func=self.create_command_response(nombre)))
                 print(f"Comando registrado: {nombre}")
 
             conn.close()
@@ -48,18 +47,21 @@ class Bot(commands.Bot):
 
     def create_command_response(self, command):
         async def command_response(ctx):
-            print(f"Ejecutando comando: {command} con respuesta: {self.commands_dict[command]}")
-            await ctx.send(self.commands_dict[command])
+            if command in self.commands_dict:
+                await ctx.send(self.commands_dict[command])
+            else:
+                await ctx.send(f"No tengo una respuesta para el comando '{command}'.")
         return command_response
 
     def register_test_command(self):
-        # Registro de un comando de prueba directamente
+        # Registro de un comando de prueba
         async def test_command(ctx):
             await ctx.send("¡Comando de prueba ejecutado correctamente!")
         self.add_command(commands.Command(name='test', func=test_command))
 
-    def is_moderator(self, ctx):
-        return ctx.author.is_mod
+    @commands.command(name='prueba')
+    async def prueba_comando(self, ctx):
+        await ctx.send("¡El comando de prueba está funcionando!")
 
     @commands.command(name='agregar')
     async def agregar_comando(self, ctx, comando: str, *, respuesta: str):
@@ -74,8 +76,7 @@ class Bot(commands.Bot):
                     print(f"Agregando comando '{comando}' con respuesta '{respuesta}'")
                     
                     # Registrar el nuevo comando en el bot
-                    command_response_func = self.create_command_response(comando)
-                    self.add_command(commands.Command(name=comando, func=command_response_func))
+                    self.add_command(commands.Command(name=comando, func=self.create_command_response(comando)))
 
                     print(f"Comandos registrados después de agregar: {self.commands_dict}")
 
