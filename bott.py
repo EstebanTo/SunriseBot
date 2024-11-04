@@ -58,6 +58,7 @@ class Bot(commands.Bot):
 
                     # Mensaje de depuración
                     print(f"Comando '{comando}' registrado con respuesta '{respuesta}'")
+                    print(f"Comandos registrados: {self.commands_dict}")  # Imprime el contenido del diccionario
                     
                     await ctx.send(f"Comando '{comando}' agregado con éxito.")
                 except psycopg2.IntegrityError:
