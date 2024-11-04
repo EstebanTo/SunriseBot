@@ -49,7 +49,7 @@ class Bot(commands.Bot):
                     cursor.execute("INSERT INTO comandos (nombre, respuesta) VALUES (%s, %s)", (comando, respuesta))
                     self.commands_dict[comando] = respuesta
 
-                    # Define la respuesta del nuevo comando
+                    # Registra el nuevo comando
                     async def command_response(ctx):
                         await self.send_command_response(ctx, comando)
 
@@ -59,8 +59,6 @@ class Bot(commands.Bot):
                     await ctx.send(f"Comando '{comando}' agregado con éxito.")
                 except psycopg2.IntegrityError:
                     await ctx.send(f"El comando '{comando}' ya existe.")
-                except Exception as e:
-                    await ctx.send(f"Ocurrió un error al agregar el comando: {str(e)}")
                 conn.commit()
             conn.close()
 
@@ -94,7 +92,11 @@ class Bot(commands.Bot):
             conn.close()
 
     async def send_command_response(self, ctx, comando):
-        await ctx.send(self.commands_dict[comando])
+        # Verificar si el comando existe en el diccionario
+        if comando in self.commands_dict:
+            await ctx.send(self.commands_dict[comando])
+        else:
+            await ctx.send(f"No tengo una respuesta para el comando '{comando}'.")
 
 # Inicializar el bot
 if __name__ == "__main__":
