@@ -4,7 +4,7 @@ from twitchio.ext import commands
 
 # Datos de autenticación de Twitch
 ACCESS_TOKEN = 'fvu2x9nhoh1d60wfv8ll4luf616imf'  # Reemplaza con tu token de acceso
-CHANNEL = 'tangov91'  # Reemplaza con tu canal de Twitch
+CHANNEL = 'b0rja'  # Reemplaza con tu canal de Twitch
 
 # Datos de conexión a la base de datos
 DB_URL = "postgresql://postgres:dTzYsyMWvGLPIGZcfsVOFjPFGHmNaHtO@postgres.railway.internal:5432/railway"
@@ -30,7 +30,9 @@ class Bot(commands.Bot):
         rows = cursor.fetchall()
         for nombre, respuesta in rows:
             self.commands_dict[nombre] = respuesta
-            self.add_command(commands.Command(name=nombre, callback=lambda ctx, cmd=nombre: self.send_command_response(ctx, cmd)))
+            async def command_response(ctx):
+                await self.send_command_response(ctx, nombre)
+            self.add_command(commands.Command(name=nombre, callback=command_response))
         conn.close()
 
     def is_moderator(self, ctx):
@@ -45,7 +47,11 @@ class Bot(commands.Bot):
                 try:
                     cursor.execute("INSERT INTO comandos (nombre, respuesta) VALUES (%s, %s)", (comando, respuesta))
                     self.commands_dict[comando] = respuesta
-                    self.add_command(commands.Command(name=comando, callback=lambda ctx: self.send_command_response(ctx, comando)))
+
+                    async def command_response(ctx):
+                        await self.send_command_response(ctx, comando)
+
+                    self.add_command(commands.Command(name=comando, callback=command_response))
                     await ctx.send(f"Comando '{comando}' agregado con éxito.")
                 except psycopg2.IntegrityError:
                     await ctx.send(f"El comando '{comando}' ya existe.")
