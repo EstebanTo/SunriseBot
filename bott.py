@@ -35,8 +35,8 @@ class Bot(commands.Bot):
             for nombre, respuesta in rows:
                 print(f"Comando: {nombre}, Respuesta: {respuesta}")
                 self.commands_dict[nombre] = respuesta
-                
-                # Registrar el comando directamente en el bot
+
+                # Registro directo del comando en el bot
                 command_response_func = self.create_command_response(nombre)
                 self.add_command(commands.Command(name=nombre, func=command_response_func))
 
@@ -47,10 +47,8 @@ class Bot(commands.Bot):
 
     def create_command_response(self, command):
         async def command_response(ctx):
-            if command in self.commands_dict:
-                await ctx.send(self.commands_dict[command])
-            else:
-                await ctx.send(f"No tengo una respuesta para el comando '{command}'.")
+            print(f"Ejecutando comando: {command} con respuesta: {self.commands_dict[command]}")
+            await ctx.send(self.commands_dict[command])
         return command_response
 
     def register_test_command(self):
