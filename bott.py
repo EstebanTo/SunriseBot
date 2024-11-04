@@ -6,8 +6,8 @@ from twitchio.ext import commands
 ACCESS_TOKEN = 'fvu2x9nhoh1d60wfv8ll4luf616imf'  # Reemplaza con tu token de acceso
 CHANNEL = 'tangov91'  # Reemplaza con tu canal de Twitch
 
-# Configuración de la conexión a la base de datos
-DB_URL = os.environ.get("DATABASE_URL")  # Asegúrate de configurar esta variable de entorno en Railway
+# Datos de conexión a la base de datos
+DB_URL = "postgresql://postgres:dTzYsyMWvGLPIGZcfsVOFjPFGHmNaHtO@postgres.railway.internal:5432/railway"
 
 # Inicialización del bot
 class Bot(commands.Bot):
@@ -82,15 +82,9 @@ class Bot(commands.Bot):
             conn.close()
 
     async def send_command_response(self, ctx, comando):
-        await ctx.send(self.commands_dict[comando].format(wins=wins, losses=losses, rank=rank))
+        await ctx.send(self.commands_dict[comando])
 
 # Inicializar el bot
 if __name__ == "__main__":
     bot = Bot()
     bot.run()
-
-###########################################################################
-#  git add bott.py                                                       ##
-#  git commit -m "Actualizar permisos para mods"                         ##
-#  git push origin main                                                  ##
-###########################################################################
