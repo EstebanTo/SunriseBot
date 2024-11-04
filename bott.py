@@ -31,15 +31,15 @@ class Bot(commands.Bot):
         rows = cursor.fetchall()
         for nombre, respuesta in rows:
             self.commands_dict[nombre] = respuesta
-            
-            # Mensaje de depuración al cargar comandos
-            print(f"Cargando comando: {nombre} con respuesta: {respuesta}")
-
-            async def command_response(ctx):
-                await self.send_command_response(ctx, nombre)
+            # Definir la función de respuesta fuera del bucle
+            async def command_response(ctx, command=nombre):
+                await self.send_command_response(ctx, command)
                 
-            # Registrar el comando
+            # Añadir el comando a la lista de comandos
             self.add_command(commands.Command(name=nombre, func=command_response))
+            
+            # Mensaje de depuración
+            print(f"Cargando comando: {nombre} con respuesta: {respuesta}")
 
         conn.close()
 
@@ -58,9 +58,9 @@ class Bot(commands.Bot):
 
                     # Mensaje de depuración
                     print(f"Agregando comando '{comando}' con respuesta '{respuesta}'")
-                    
-                    async def command_response(ctx):
-                        await self.send_command_response(ctx, comando)
+
+                    async def command_response(ctx, command=comando):
+                        await self.send_command_response(ctx, command)
 
                     # Añadir el comando a la lista de comandos
                     self.add_command(commands.Command(name=comando, func=command_response))
