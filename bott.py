@@ -14,8 +14,8 @@ class Bot(commands.Bot):
     def __init__(self):
         super().__init__(token=ACCESS_TOKEN, prefix='!', initial_channels=[CHANNEL])
         self.commands_dict = {}
-        self.load_commands()
         self.register_test_command()  # Registrar un comando de prueba al inicio
+        self.load_commands()  # Cargar los comandos de la base de datos
 
     async def event_ready(self):
         print(f'Logged in as {self.nick}')
@@ -39,6 +39,7 @@ class Bot(commands.Bot):
                 # Registrar el comando directamente en el bot
                 command_response_func = self.create_command_response(nombre)
                 self.add_command(commands.Command(name=nombre, func=command_response_func))
+                print(f"Comando registrado: {nombre}")
 
             conn.close()
             print(f"Comandos registrados: {self.commands_dict}")  # Verificar los comandos registrados
