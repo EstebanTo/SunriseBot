@@ -35,8 +35,8 @@ class Bot(commands.Bot):
             for nombre, respuesta in rows:
                 print(f"Comando: {nombre}, Respuesta: {respuesta}")
                 self.commands_dict[nombre] = respuesta
-
-                # Registro directo del comando en el bot
+                
+                # Registrar el comando directamente en el bot
                 command_response_func = self.create_command_response(nombre)
                 self.add_command(commands.Command(name=nombre, func=command_response_func))
 
