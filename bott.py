@@ -15,6 +15,7 @@ class Bot(commands.Bot):
         super().__init__(token=ACCESS_TOKEN, prefix='!', initial_channels=[CHANNEL])
         self.commands_dict = {}
         self.load_commands()
+        self.register_test_command()  # Registrar un comando de prueba al inicio
 
     async def event_ready(self):
         print(f'Logged in as {self.nick}')
@@ -44,14 +45,15 @@ class Bot(commands.Bot):
 
     def create_command_response(self, command):
         async def command_response(ctx):
-            # Enviar la respuesta directamente desde el diccionario
-            if command in self.commands_dict:
-                print(f"Ejecutando comando: {command} con respuesta: {self.commands_dict[command]}")
-                await ctx.send(self.commands_dict[command])
-            else:
-                print(f"No se encontró el comando: {command}")
-                await ctx.send(f"No tengo una respuesta para el comando '{command}'.")
+            print(f"Ejecutando comando: {command} con respuesta: {self.commands_dict[command]}")
+            await ctx.send(self.commands_dict[command])
         return command_response
+
+    def register_test_command(self):
+        # Registro de un comando de prueba directamente
+        async def test_command(ctx):
+            await ctx.send("¡Comando de prueba ejecutado correctamente!")
+        self.add_command(commands.Command(name='test', func=test_command))
 
     def is_moderator(self, ctx):
         return ctx.author.is_mod
@@ -66,13 +68,8 @@ class Bot(commands.Bot):
                     cursor.execute("INSERT INTO comandos (nombre, respuesta) VALUES (%s, %s)", (comando, respuesta))
                     self.commands_dict[comando] = respuesta
                     
-                    # Mensaje de depuración
                     print(f"Agregando comando '{comando}' con respuesta '{respuesta}'")
-
-                    # Registrar el nuevo comando en el bot
                     self.add_command(commands.Command(name=comando, func=self.create_command_response(comando)))
-
-                    # Imprimir el contenido del diccionario de comandos
                     print(f"Comandos registrados: {self.commands_dict}")
 
                     await ctx.send(f"Comando '{comando}' agregado con éxito.")
