@@ -32,7 +32,7 @@ class Bot(commands.Bot):
             self.commands_dict[nombre] = respuesta
             async def command_response(ctx):
                 await self.send_command_response(ctx, nombre)
-            self.add_command(commands.Command(name=nombre, callback=command_response))
+            self.add_command(commands.Command(name=nombre, func=command_response))
         conn.close()
 
     def is_moderator(self, ctx):
@@ -48,10 +48,12 @@ class Bot(commands.Bot):
                     cursor.execute("INSERT INTO comandos (nombre, respuesta) VALUES (%s, %s)", (comando, respuesta))
                     self.commands_dict[comando] = respuesta
 
+                    # Define una función que se usará como callback
                     async def command_response(ctx):
                         await self.send_command_response(ctx, comando)
 
-                    self.add_command(commands.Command(name=comando, callback=command_response))
+                    # Registra el comando
+                    self.add_command(commands.Command(name=comando, func=command_response))
                     await ctx.send(f"Comando '{comando}' agregado con éxito.")
                 except psycopg2.IntegrityError:
                     await ctx.send(f"El comando '{comando}' ya existe.")
