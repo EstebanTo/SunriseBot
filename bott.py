@@ -31,13 +31,16 @@ class Bot(commands.Bot):
         rows = cursor.fetchall()
         for nombre, respuesta in rows:
             self.commands_dict[nombre] = respuesta
-            # Definir la función de respuesta fuera del bucle
-            async def command_response(ctx, command=nombre):
-                await self.send_command_response(ctx, command)
-                
-            # Añadir el comando a la lista de comandos
-            self.add_command(commands.Command(name=nombre, func=command_response))
+
+            # Crear una función de respuesta para el comando
+            def create_command_response(command):
+                async def command_response(ctx):
+                    await self.send_command_response(ctx, command)
+                return command_response
             
+            # Añadir el comando a la lista de comandos
+            self.add_command(commands.Command(name=nombre, func=create_command_response(nombre)))
+
             # Mensaje de depuración
             print(f"Cargando comando: {nombre} con respuesta: {respuesta}")
 
@@ -59,11 +62,14 @@ class Bot(commands.Bot):
                     # Mensaje de depuración
                     print(f"Agregando comando '{comando}' con respuesta '{respuesta}'")
 
-                    async def command_response(ctx, command=comando):
-                        await self.send_command_response(ctx, command)
-
+                    # Crear una función de respuesta para el nuevo comando
+                    def create_command_response(command):
+                        async def command_response(ctx):
+                            await self.send_command_response(ctx, command)
+                        return command_response
+                    
                     # Añadir el comando a la lista de comandos
-                    self.add_command(commands.Command(name=comando, func=command_response))
+                    self.add_command(commands.Command(name=comando, func=create_command_response(comando)))
 
                     # Imprimir el contenido del diccionario de comandos
                     print(f"Comandos registrados: {self.commands_dict}")
