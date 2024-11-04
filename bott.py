@@ -4,7 +4,7 @@ from twitchio.ext import commands
 
 # Datos de autenticación de Twitch
 ACCESS_TOKEN = 'fvu2x9nhoh1d60wfv8ll4luf616imf'  # Reemplaza con tu token de acceso
-CHANNEL = 'b0rja'  # Reemplaza con tu canal de Twitch
+CHANNEL = 'tangov91'  # Reemplaza con tu canal de Twitch
 
 # Datos de conexión a la base de datos
 DB_URL = "postgresql://postgres:dTzYsyMWvGLPIGZcfsVOFjPFGHmNaHtO@postgres.railway.internal:5432/railway"
