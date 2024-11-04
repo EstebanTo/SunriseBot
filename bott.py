@@ -31,9 +31,16 @@ class Bot(commands.Bot):
         rows = cursor.fetchall()
         for nombre, respuesta in rows:
             self.commands_dict[nombre] = respuesta
+            
+            # Mensaje de depuración al cargar comandos
+            print(f"Cargando comando: {nombre} con respuesta: {respuesta}")
+
             async def command_response(ctx):
                 await self.send_command_response(ctx, nombre)
+                
+            # Registrar el comando
             self.add_command(commands.Command(name=nombre, func=command_response))
+
         conn.close()
 
     def is_moderator(self, ctx):
@@ -49,17 +56,18 @@ class Bot(commands.Bot):
                     cursor.execute("INSERT INTO comandos (nombre, respuesta) VALUES (%s, %s)", (comando, respuesta))
                     self.commands_dict[comando] = respuesta
 
-                    # Definir la respuesta del nuevo comando
+                    # Mensaje de depuración
+                    print(f"Agregando comando '{comando}' con respuesta '{respuesta}'")
+                    
                     async def command_response(ctx):
                         await self.send_command_response(ctx, comando)
 
                     # Añadir el comando a la lista de comandos
                     self.add_command(commands.Command(name=comando, func=command_response))
 
-                    # Mensaje de depuración
-                    print(f"Comando '{comando}' registrado con respuesta '{respuesta}'")
-                    print(f"Comandos registrados: {self.commands_dict}")  # Imprime el contenido del diccionario
-                    
+                    # Imprimir el contenido del diccionario de comandos
+                    print(f"Comandos registrados: {self.commands_dict}")
+
                     await ctx.send(f"Comando '{comando}' agregado con éxito.")
                 except psycopg2.IntegrityError:
                     await ctx.send(f"El comando '{comando}' ya existe.")
