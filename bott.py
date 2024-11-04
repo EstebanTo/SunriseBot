@@ -21,7 +21,8 @@ class Bot(commands.Bot):
         print(f'Connected to {CHANNEL}')
 
     async def event_message(self, message):
-        await self.handle_commands(message)
+        if message.author:  # Verificar que el autor no sea None
+            await self.handle_commands(message)
 
     def load_commands(self):
         conn = psycopg2.connect(DB_URL)
