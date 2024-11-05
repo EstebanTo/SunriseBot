@@ -13,9 +13,8 @@ DB_URL = "postgresql://postgres:dTzYsyMWvGLPIGZcfsVOFjPFGHmNaHtO@postgres.railwa
 class Bot(commands.Bot):
     def __init__(self):
         super().__init__(token=ACCESS_TOKEN, prefix='!', initial_channels=[CHANNEL])
-        self.commands_dict = {}
+        self.commands_dict = {}  # Diccionario para almacenar los comandos
         self.load_commands()  # Cargar comandos de la base de datos
-        self.register_test_command()  # Registrar un comando de prueba
 
     async def event_ready(self):
         print(f'Logged in as {self.nick}')
@@ -34,10 +33,8 @@ class Bot(commands.Bot):
             print("Comandos obtenidos de la base de datos:")
             for nombre, respuesta in rows:
                 print(f"Comando: {nombre}, Respuesta: {respuesta}")
-                self.commands_dict[nombre] = respuesta
-                
-                # Registro directo del comando
-                self.add_command(commands.Command(name=nombre, func=lambda ctx, respuesta=respuesta: self.send_response(ctx, respuesta)))
+                self.commands_dict[nombre] = respuesta  # Almacenar en el diccionario
+                self.add_command(commands.Command(name=nombre, func=self.command_response))  # Registrar el comando
                 print(f"Comando registrado: {nombre}")
 
             conn.close()
@@ -45,15 +42,13 @@ class Bot(commands.Bot):
         except Exception as e:
             print(f"Error al conectar a la base de datos: {str(e)}")
 
-    async def send_response(self, ctx, respuesta):
-        print(f"Ejecutando comando con respuesta: {respuesta}")
-        await ctx.send(respuesta)
-
-    def register_test_command(self):
-        # Registro de un comando de prueba directamente
-        async def test_command(ctx):
-            await ctx.send("¡Comando de prueba ejecutado correctamente!")
-        self.add_command(commands.Command(name='test', func=test_command))
+    async def command_response(self, ctx):
+        command_name = ctx.command.name  # Obtener el nombre del comando
+        response = self.commands_dict.get(f"!{command_name}")  # Obtener la respuesta del diccionario
+        if response:
+            await ctx.send(response)  # Enviar la respuesta al chat
+        else:
+            await ctx.send("Comando no reconocido.")
 
 # Inicializar el bot
 if __name__ == "__main__":
