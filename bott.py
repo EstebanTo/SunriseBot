@@ -47,7 +47,7 @@ class Bot(commands.Bot):
 
     def create_command_function(self, respuesta):
         async def command_response(ctx):
-            print(f"Ejecutando comando con respuesta: {respuesta}")
+            print(f"Ejecutando comando, se envía respuesta: {respuesta}")  # Mensaje de depuración
             await ctx.send(respuesta)
         return command_response
 
