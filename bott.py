@@ -14,6 +14,7 @@ class Bot(commands.Bot):
         super().__init__(token=ACCESS_TOKEN, prefix='!', initial_channels=[CHANNEL])
         self.commands_dict = {}  # Almacenamiento para los comandos
         self.load_commands()  # Cargar comandos de la base de datos
+        self.register_admin_commands()  # Registrar comandos de administración
 
     async def event_ready(self):
         print(f'Logged in as {self.nick}')
@@ -47,19 +48,38 @@ class Bot(commands.Bot):
         except Exception as e:
             print(f"Error al conectar a la base de datos: {str(e)}")
 
-    async def command_response(self, ctx):
-        command_name = ctx.command.name  # Obtener el nombre del comando
-        response = self.commands_dict.get(f"!{command_name}")  # Obtener la respuesta del diccionario
-        if response:
-            await ctx.send(response)  # Enviar la respuesta al chat
-        else:
-            await ctx.send("Comando no reconocido.")
+    def register_admin_commands(self):
+        async def agregar_command(ctx, nombre: str, *, respuesta: str):
+            try:
+                conn = psycopg2.connect(DB_URL)
+                cursor = conn.cursor()
+                cursor.execute("INSERT INTO comandos (nombre, respuesta) VALUES (%s, %s)", (nombre, respuesta))
+                conn.commit()
+                cursor.close()
+                conn.close()
+                self.commands_dict[nombre] = respuesta  # Agregar al diccionario local
+                self.add_command(commands.Command(name=nombre.lstrip('!'), func=lambda c: self.send_response(c, respuesta)))  # Registrar el nuevo comando
+                await ctx.send(f"Comando '{nombre}' agregado con éxito.")
+            except Exception as e:
+                await ctx.send(f"Error al agregar el comando: {str(e)}")
 
-    def register_test_command(self):
-        # Registro de un comando de prueba directamente
-        async def test_command(ctx):
-            await ctx.send("¡Comando de prueba ejecutado correctamente!")
-        self.add_command(commands.Command(name='test', func=test_command))
+        async def eliminar_command(ctx, nombre: str):
+            try:
+                conn = psycopg2.connect(DB_URL)
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM comandos WHERE nombre = %s", (nombre,))
+                conn.commit()
+                cursor.close()
+                conn.close()
+                self.commands_dict.pop(nombre, None)  # Eliminar del diccionario local
+                await ctx.send(f"Comando '{nombre}' eliminado con éxito.")
+            except Exception as e:
+                await ctx.send(f"Error al eliminar el comando: {str(e)}")
+
+        # Registrar los comandos de administración
+        self.add_command(commands.Command(name='agregar', func=agregar_command))
+        self.add_command(commands.Command(name='eliminar', func=eliminar_command))
+        print("Comandos de administración registrados.")
 
 # Inicializar el bot
 if __name__ == "__main__":
