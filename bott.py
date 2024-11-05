@@ -85,9 +85,28 @@ class Bot(commands.Bot):
             except Exception as e:
                 await ctx.send(f"Error al eliminar el comando: {str(e)}")
 
+        async def modificar_command(ctx, nombre: str, *, nueva_respuesta: str):
+            try:
+                conn = psycopg2.connect(DB_URL)
+                cursor = conn.cursor()
+                cursor.execute("UPDATE comandos SET respuesta = %s WHERE nombre = %s", (nueva_respuesta, nombre))
+                conn.commit()
+                cursor.close()
+                conn.close()
+                
+                # Actualizar el diccionario local y el comando
+                if nombre in self.commands_dict:
+                    self.commands_dict[nombre] = nueva_respuesta  # Actualizar en el diccionario local
+                    await ctx.send(f"Comando '{nombre}' modificado con éxito. Nueva respuesta: {nueva_respuesta}")
+                else:
+                    await ctx.send(f"El comando '{nombre}' no existe.")
+            except Exception as e:
+                await ctx.send(f"Error al modificar el comando: {str(e)}")
+
         # Registrar los comandos de administración
         self.add_command(commands.Command(name='agregar', func=agregar_command))
         self.add_command(commands.Command(name='eliminar', func=eliminar_command))
+        self.add_command(commands.Command(name='modificar', func=modificar_command))  # Registro del nuevo comando
         print("Comandos de administración registrados.")
 
 # Inicializar el bot
