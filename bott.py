@@ -36,8 +36,8 @@ class Bot(commands.Bot):
                 print(f"Comando: {nombre}, Respuesta: {respuesta}")
                 self.commands_dict[nombre] = respuesta
                 
-                # Registrar el comando directamente en el bot
-                self.add_command(commands.Command(name=nombre, func=self.create_command_function(respuesta)))
+                # Registro directo del comando
+                self.add_command(commands.Command(name=nombre, func=lambda ctx, respuesta=respuesta: self.send_response(ctx, respuesta)))
                 print(f"Comando registrado: {nombre}")
 
             conn.close()
@@ -45,11 +45,9 @@ class Bot(commands.Bot):
         except Exception as e:
             print(f"Error al conectar a la base de datos: {str(e)}")
 
-    def create_command_function(self, respuesta):
-        async def command_response(ctx):
-            print(f"Ejecutando comando, se envía respuesta: {respuesta}")  # Mensaje de depuración
-            await ctx.send(respuesta)
-        return command_response
+    async def send_response(self, ctx, respuesta):
+        print(f"Ejecutando comando con respuesta: {respuesta}")
+        await ctx.send(respuesta)
 
     def register_test_command(self):
         # Registro de un comando de prueba directamente
