@@ -49,15 +49,11 @@ class Bot(commands.Bot):
             print(f"Error al conectar a la base de datos: {str(e)}")
 
     def register_admin_commands(self):
-        async def is_mod(ctx):
-            """Verifica si el usuario es moderador."""
-            return ctx.author.is_mod  # Devuelve True si el usuario es un moderador
-
         async def agregar_command(ctx, nombre: str, *, respuesta: str):
-            if not await is_mod(ctx):
+            if not ctx.author.is_mod:  # Verificar si el autor es un moderador
                 await ctx.send("Este comando solo puede ser utilizado por moderadores.")
                 return
-            
+
             try:
                 conn = psycopg2.connect(DB_URL)
                 cursor = conn.cursor()
@@ -77,7 +73,7 @@ class Bot(commands.Bot):
                 await ctx.send(f"Error al agregar el comando: {str(e)}")
 
         async def eliminar_command(ctx, nombre: str):
-            if not await is_mod(ctx):
+            if not ctx.author.is_mod:  # Verificar si el autor es un moderador
                 await ctx.send("Este comando solo puede ser utilizado por moderadores.")
                 return
 
@@ -98,7 +94,7 @@ class Bot(commands.Bot):
                 await ctx.send(f"Error al eliminar el comando: {str(e)}")
 
         async def modificar_command(ctx, nombre: str, *, nueva_respuesta: str):
-            if not await is_mod(ctx):
+            if not ctx.author.is_mod:  # Verificar si el autor es un moderador
                 await ctx.send("Este comando solo puede ser utilizado por moderadores.")
                 return
 
@@ -113,6 +109,12 @@ class Bot(commands.Bot):
                 # Actualizar el diccionario local y el comando
                 if nombre in self.commands_dict:
                     self.commands_dict[nombre] = nueva_respuesta  # Actualizar en el diccionario local
+                    # Re-registrar el comando con la nueva respuesta
+                    async def updated_command_response(ctx, respuesta=nueva_respuesta):
+                        await ctx.send(respuesta)
+
+                    self.remove_command(nombre.lstrip('!'))  # Desregistrar el comando anterior
+                    self.add_command(commands.Command(name=nombre.lstrip('!'), func=updated_command_response))  # Registrar el nuevo comando
                     await ctx.send(f"Comando '{nombre}' modificado con éxito. Nueva respuesta: {nueva_respuesta}")
                 else:
                     await ctx.send(f"El comando '{nombre}' no existe.")
