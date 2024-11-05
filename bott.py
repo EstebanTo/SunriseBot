@@ -58,7 +58,6 @@ class Bot(commands.Bot):
                 cursor.close()
                 conn.close()
                 self.commands_dict[nombre] = respuesta  # Agregar al diccionario local
-                self.add_command(commands.Command(name=nombre.lstrip('!'), func=lambda c: self.send_response(c, respuesta)))  # Registrar el nuevo comando
                 await ctx.send(f"Comando '{nombre}' agregado con éxito.")
             except Exception as e:
                 await ctx.send(f"Error al agregar el comando: {str(e)}")
