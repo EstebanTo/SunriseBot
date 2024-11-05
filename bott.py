@@ -77,7 +77,10 @@ class Bot(commands.Bot):
                 cursor.close()
                 conn.close()
                 
-                self.commands_dict.pop(nombre, None)  # Eliminar del diccionario local
+                # Eliminar del diccionario local y desregistrar el comando
+                if nombre in self.commands_dict:
+                    del self.commands_dict[nombre]  # Eliminar del diccionario local
+                    self.remove_command(nombre.lstrip('!'))  # Desregistrar el comando
                 await ctx.send(f"Comando '{nombre}' eliminado con éxito.")
             except Exception as e:
                 await ctx.send(f"Error al eliminar el comando: {str(e)}")
