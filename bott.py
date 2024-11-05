@@ -3,8 +3,8 @@ import psycopg2
 from twitchio.ext import commands
 
 # Datos de autenticación de Twitch
-ACCESS_TOKEN = 'tu_token_de_acceso'  # Reemplaza con tu token de acceso
-CHANNEL = 'tu_canal'  # Reemplaza con tu canal
+ACCESS_TOKEN = 'fvu2x9nhoh1d60wfv8ll4luf616imf'  # Reemplaza con tu token de acceso
+CHANNEL = 'tangov91'  # Reemplaza con tu canal
 
 # Datos de conexión a la base de datos
 DB_URL = "postgresql://usuario:contraseña@host:puerto/nombre_bd"  # Reemplaza con tus credenciales de PostgreSQL
