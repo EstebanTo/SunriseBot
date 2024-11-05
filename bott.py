@@ -57,8 +57,14 @@ class Bot(commands.Bot):
                 conn.commit()
                 cursor.close()
                 conn.close()
-                self.commands_dict[nombre] = respuesta  # Agregar al diccionario local
-                await ctx.send(f"Comando '{nombre}' agregado con éxito. Respuesta: {respuesta}")  # Confirmar en el chat
+                
+                # Agregar al diccionario local y registrar el nuevo comando
+                self.commands_dict[nombre] = respuesta
+                async def new_command_response(ctx, respuesta=respuesta):
+                    await ctx.send(respuesta)
+
+                self.add_command(commands.Command(name=nombre.lstrip('!'), func=new_command_response))
+                await ctx.send(f"Comando '{nombre}' agregado con éxito. Respuesta: {respuesta}")
             except Exception as e:
                 await ctx.send(f"Error al agregar el comando: {str(e)}")
 
@@ -70,8 +76,9 @@ class Bot(commands.Bot):
                 conn.commit()
                 cursor.close()
                 conn.close()
+                
                 self.commands_dict.pop(nombre, None)  # Eliminar del diccionario local
-                await ctx.send(f"Comando '{nombre}' eliminado con éxito.")  # Confirmar en el chat
+                await ctx.send(f"Comando '{nombre}' eliminado con éxito.")
             except Exception as e:
                 await ctx.send(f"Error al eliminar el comando: {str(e)}")
 
