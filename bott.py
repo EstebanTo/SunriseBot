@@ -49,7 +49,15 @@ class Bot(commands.Bot):
             print(f"Error al conectar a la base de datos: {str(e)}")
 
     def register_admin_commands(self):
+        async def is_mod(ctx):
+            """Verifica si el usuario es moderador."""
+            return ctx.author.is_mod  # Devuelve True si el usuario es un moderador
+
         async def agregar_command(ctx, nombre: str, *, respuesta: str):
+            if not await is_mod(ctx):
+                await ctx.send("Este comando solo puede ser utilizado por moderadores.")
+                return
+            
             try:
                 conn = psycopg2.connect(DB_URL)
                 cursor = conn.cursor()
@@ -69,6 +77,10 @@ class Bot(commands.Bot):
                 await ctx.send(f"Error al agregar el comando: {str(e)}")
 
         async def eliminar_command(ctx, nombre: str):
+            if not await is_mod(ctx):
+                await ctx.send("Este comando solo puede ser utilizado por moderadores.")
+                return
+
             try:
                 conn = psycopg2.connect(DB_URL)
                 cursor = conn.cursor()
@@ -86,6 +98,10 @@ class Bot(commands.Bot):
                 await ctx.send(f"Error al eliminar el comando: {str(e)}")
 
         async def modificar_command(ctx, nombre: str, *, nueva_respuesta: str):
+            if not await is_mod(ctx):
+                await ctx.send("Este comando solo puede ser utilizado por moderadores.")
+                return
+
             try:
                 conn = psycopg2.connect(DB_URL)
                 cursor = conn.cursor()
